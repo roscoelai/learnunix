@@ -2,33 +2,44 @@
 # File: guessinggame.sh
 
 guessnfiles() {
-    # Strategy to get number of files: list contents of directory in long form, 
-    # filter out lines that start with a "-" as opposed to a "d", then count 
-    # the number of lines
-    local count=$(ls -l | grep ^- | wc -l)
+    # Strategy to get number of files:
+    # Count regular files, include hidden files
+    # 1. List contents of directory in long form
+    # 2. Filter out lines that start with a "-"
+    # 3. Count the number of lines
+    # local n=$(ls -la | grep ^- | wc -l)
 
+    # Strategy 2:
+    # 1. List all contents in directory
+    # 2. Filter out names with "/"
+    # 3. Count the number of lines
+    local n=$(ls -ALpq | grep -v / | wc -l)
+    # local n=$(ls -F | grep -Ev '@|\*|=|\||>|/' | wc -l)
+
+    # Infinite loop, exit condition will be guessing the correct number
+    # read would provide a break to manually kill the process in a calm manner
     while true
     do
         echo "How many files are in the current directory?"
         read -p "Please enter a non-negative integer: " guess
 
-        # Check that input is a non-negative integer
-        if [[ $guess =~ ^[0-9]+$ ]]
+        # OMG, checking octals is beyond me at the moment, just disallow it
+        # Check for non-negative integers
+        # Limitation: integers >= 2**63 will be considered negative
+        if ([[ $guess =~ ^[1-9][0-9]*$ ]] && [[ $guess -gt 0 ]]) || 
+            ([[ $guess =~ ^0+$ ]] && [[ $guess -eq 0 ]])
         then
-            # Create a positive exit condition
-            if [[ $guess -eq $count ]]
-            then
-                printf "\e[92mCongratulations!\e[0m It is indeed $count files!\n"
-                exit 0
-            elif [[ $guess -gt $count ]]
+            if [[ $guess -gt $n ]]
             then
                 printf "Too many! \e[96mTry lower!\e[0m\n\n"
-            elif [[ $guess -lt $count ]]
+            elif [[ $guess -lt $n ]]
             then
                 printf "Too few! \e[91mTry higher!\e[0m\n\n"
             else
-                echo "Something has gone horribly wrong!\n"
-                exit 1
+                printf "\e[92mCongratulations!\e[0m It is indeed $n files!\n"
+                ls -ALpq | grep -v / | nl
+                # ls -F | grep -Ev '@|\*|=|\||>|/' | nl
+                break
             fi
         fi
     done
