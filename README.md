@@ -1,3 +1,3 @@
 ## Bash, Make, Git, and GitHub  
-**make** was last run on: Sat, Apr 18, 2020 11:14:05 PM  
-**guessinggame.sh** has 37 lines  
+**make** was last run on: Mon, Apr 20, 2020  5:02:35 PM  
+**guessinggame.sh** has 48 lines  
