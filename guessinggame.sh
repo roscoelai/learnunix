@@ -3,18 +3,10 @@
 
 guessnfiles() {
     # Strategy to get number of files:
-    # Count regular files, include hidden files
-    # 1. List contents of directory in long form
-    # 2. Filter out lines that start with a "-"
-    # 3. Count the number of lines
-    # local n=$(ls -la | grep ^- | wc -l)
-
-    # Strategy 2:
     # 1. List all contents in directory
     # 2. Filter out names with "/"
     # 3. Count the number of lines
     local n=$(ls -ALpq | grep -v / | wc -l)
-    # local n=$(ls -F | grep -Ev '@|\*|=|\||>|/' | wc -l)
 
     # Infinite loop, exit condition will be guessing the correct number
     # read would provide a break to manually kill the process in a calm manner
@@ -38,7 +30,6 @@ guessnfiles() {
             else
                 printf "\e[92mCongratulations!\e[0m It is indeed $n files!\n"
                 ls -ALpq | grep -v / | nl
-                # ls -F | grep -Ev '@|\*|=|\||>|/' | nl
                 break
             fi
         fi
