@@ -1,10 +1,11 @@
-#!/usr/bin/bash
+#!/bin/bash
 # guessinggame.bash
 
-lred() { echo -e '\033[0;91m'"$*"'\033[0m'; }
-lgreen() { echo -e '\033[0;92m'"$*"'\033[0m'; }
-lmagenta() { echo -e '\033[0;95m'"$*"'\033[0m'; }
-lcyan() { echo -e '\033[0;96m'"$*"'\033[0m'; }
+echo_color() { echo -e '\033[0;'"$*"'\033[0m'; }
+lred() { echo_color '91m'"$*"; }
+lgreen() { echo_color '92m'"$*"; }
+lmagenta() { echo_color '95m'"$*"; }
+lcyan() { echo_color '96m'"$*"; }
 
 guessnfiles() {
     local nfiles=0
@@ -18,7 +19,7 @@ guessnfiles() {
 
         # Guard against non-numeric input
         local guard="${guess//[[:digit:]]/}" 
-        ! [ -z "$guard" ] && lred "Invalid input: $guard" && continue
+        [ -n "$guard" ] && lred "Invalid input: $guard" && continue
 
         # Currently no guard against non-decimal input
         # ...
