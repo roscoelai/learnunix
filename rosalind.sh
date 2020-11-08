@@ -1,21 +1,35 @@
 #!/bin/bash
 
-dna0() {
-    echo "$1" | grep -o . | sort | uniq -c | awk '{print $1}' ORS=' '
-}
+# dna0() {
+#     # Fails edge cases
+#     echo "$1" | grep -o . | sort | uniq -c | awk '{print $1}' ORS=' '
+# }
+# 
+# dna1() {
+#     local a=0
+#     local c=0
+#     local g=0
+#     local t=0
+#     for ((i = 0; i < ${#1}; i++)); do
+#         [[ "${1:$i:1}" == 'A' ]] && ((++a)) && continue
+#         [[ "${1:$i:1}" == 'C' ]] && ((++c)) && continue
+#         [[ "${1:$i:1}" == 'G' ]] && ((++g)) && continue
+#         [[ "${1:$i:1}" == 'T' ]] && ((++t)) && continue
+#     done
+#     echo "$a $c $g $t"
+# }
 
 dna() {
-    local a=0
-    local c=0
-    local g=0
-    local t=0
+    local arr
+    declare -A arr
+    arr["A"]=0
+    arr["C"]=0
+    arr["G"]=0
+    arr["T"]=0
     for ((i = 0; i < ${#1}; i++)); do
-        [[ "${1:$i:1}" == 'A' ]] && ((++a)) && continue
-        [[ "${1:$i:1}" == 'C' ]] && ((++c)) && continue
-        [[ "${1:$i:1}" == 'G' ]] && ((++g)) && continue
-        [[ "${1:$i:1}" == 'T' ]] && ((++t)) && continue
+        ((++arr["${1:$i:1}"]))
     done
-    echo "$a $c $g $t"
+    echo "${arr["A"]} ${arr["C"]} ${arr["G"]} ${arr["T"]}"
 }
 
 test_dna() {
@@ -43,18 +57,74 @@ test_all_dna() {
 
 
 rna() {
-    echo "$1" | tr T U
+    tr T U <<< "$1"
 }
 
-# rna "GATGGAACTTGACTACGTAAATT"
-# echo "GAUGGAACUUGACUACGUAAAUU"
+test_rna() {
+    local actual
+    actual=$(rna "$1")
+    if [ "$actual" != "$2" ]; then
+        echo "failed rna=$1 expected=$2 actual=${actual}"
+        exit 1
+    fi
+}
+
+test_all_rna() {
+    test_rna '' ''
+    test_rna 'A' 'A'
+    test_rna 'C' 'C'
+    test_rna 'G' 'G'
+    test_rna 'T' 'U'
+    test_rna 'GATGGAACTTGACTACGTAAATT' 'GAUGGAACUUGACUACGUAAAUU'
+    echo "RNA : PASS"
+}
+
+# test_all_rna
+
+
 
 revc() {
-    echo "$1" | tr ACGTacgt TGCAtgca | rev
+    tr ACGTacgt TGCAtgca <<< "$1" | rev
 }
 
-# revc "AAAACCCGGT"
-# echo "ACCGGGTTTT"
+test_revc() {
+    local actual
+    actual=$(revc "$1")
+    if [ "$actual" != "$2" ]; then
+        echo "failed revc=$1 expected=$2 actual=${actual}"
+        exit 1
+    fi
+}
+
+test_all_revc() {
+    test_revc '' ''
+    test_revc 'A' 'T'
+    test_revc 'C' 'G'
+    test_revc 'G' 'C'
+    test_revc 'T' 'A'
+    test_revc 'AAAACCCGGT' 'ACCGGGTTTT'
+    echo "REVC: PASS"
+}
+
+# test_all_revc
+
+
+
+# fib0() {
+#     local n=$1
+#     local k=$2
+#     ((k < 1)) && k=1
+# 
+#     local a=1
+#     local b=1
+#     local temp
+#     for ((i = 2; i < n; i++)); do
+#         temp=$b
+#         b=$((k * a + b))
+#         a=$temp
+#     done
+#     echo "$b"
+# }
 
 fib() {
     local n=$1
@@ -68,22 +138,47 @@ fib() {
     echo "${arr[${#arr[@]} - 1]}"
 }
 
-# printf 'FIB : ' && [[ $(fib 5 3) -eq 19 ]] && echo PASS || echo FAIL
-
-gc3() {
-    local tags=( $(echo "$1" | grep '>' | sed 's/>//') )
-    local pattern='>R[a-z]\{7\}_[0-9]\{4\}'
-    local dnas=( $(echo "${1//[[:space:]]/}" | sed "s/${pattern}/ /g") )
-    local maxi=0
-    local max1=0
-    local max2=0
-    for ((i = 0; i < ${#dnas[@]}; i++)); do
-        max2=$(dna "${dnas[i]}" | awk '{printf "%0.6f", ($2+$3) / ($1+$2+$3+$4) * 100}')
-        [[ "$max1" != "$max2" ]] && max1="$max2" && maxi="$i"
-    done
-    echo "${tags[$maxi]}"
-    echo "$max2"
+test_fib() {
+    local actual
+    actual=$(fib $1 $2)
+    if [ "$actual" != "$3" ]; then
+        echo "failed fib=$1 $2 expected=$3 actual=${actual}"
+        exit 1
+    fi
 }
+
+test_all_fib() {
+    test_fib 1 1 1 
+    test_fib 2 1 1 
+    test_fib 3 1 2 
+    test_fib 4 1 3 
+    test_fib 5 1 5 
+    test_fib 1 99 1 
+    test_fib 2 99 1 
+    test_fib 3 2 3 
+    test_fib 3 3 4 
+    test_fib 5 3 19
+    echo "FIB : PASS"
+}
+
+# test_all_fib
+
+
+
+# gc3() {
+#     local tags=( $(echo "$1" | grep '>' | sed 's/>//') )
+#     local pattern='>R[a-z]\{7\}_[0-9]\{4\}'
+#     local dnas=( $(echo "${1//[[:space:]]/}" | sed "s/${pattern}/ /g") )
+#     local maxi=0
+#     local max1=0
+#     local max2=0
+#     for ((i = 0; i < ${#dnas[@]}; i++)); do
+#         max2=$(dna "${dnas[i]}" | awk '{printf "%0.6f", ($2+$3) / ($1+$2+$3+$4) * 100}')
+#         [[ "$max1" != "$max2" ]] && max1="$max2" && maxi="$i"
+#     done
+#     echo "${tags[$maxi]}"
+#     echo "$max2"
+# }
 
 gc() {
     local tags=( $(grep '>' <<< "$1") ) # Alternatives?
@@ -133,6 +228,8 @@ hamm() {
 # CATCGTAATGACGGCCT"
 # echo "7"
 
+
+
 iprb() {
     local total=$(( "${1// /+}" ))
     local num=$(echo "$1 $total" | awk '{print 4*$1*($2+$3+$4-1) + $2*(4*$3+3*$2-3)}')
@@ -142,6 +239,8 @@ iprb() {
 
 # iprb "2 2 2"
 # echo "0.78333"
+
+
 
 prot() {
     declare -A table=(
@@ -170,6 +269,8 @@ prot() {
 # prot "AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA"
 # echo "MAMAPRTEINSTRING"
 
+
+
 subs() {
     local arr=( $(echo "$1") )
     local str=( $(echo "${arr[0]}" | sed 's/./& /g') )
@@ -188,6 +289,8 @@ subs() {
 # subs "GATATATGCATATACTT
 # ATAT"
 # echo "2 4 10"
+
+
 
 cons() {
     local seqs=( $(echo "$1" | grep -v '>') )
@@ -242,7 +345,7 @@ cons() {
 # G: 1 1 6 3 0 1 0 0
 # T: 1 5 0 0 0 1 1 6"
 
-#!/bin/bash
+
 
 fibd() {
     local n=$1
@@ -298,13 +401,28 @@ test_all_fibd() {
 
 # test_all_fibd
 
-grph() {
-    local tags=( $(echo "$1" | grep '>') )
-    local dnas=( $(echo "$1" | grep -v '>') )
-    echo "${tags[@]}"
-    echo "${dnas[@]}"
 
+
+grph() {
     local k=3
+
+    local tags=( $(grep '>' <<< "$1" | sed 's/>//g') )
+
+    mapfile -t arr <<< "$1"
+    local dnas
+    dnas="${arr[*]/>*/>}"
+    IFS=" " read -ra dnas <<< "${dnas//>/ }"
+
+    local pref
+    local suff
+    local n=0
+    for ((i = 0; i < ${#dnas[@]}; i++)); do
+        suff="${dnas[i]:${#dnas[i]}-$k}"
+        for ((j = i + 1; j < ${#dnas[@]}; j++)); do
+            pref="${dnas[j]:0:$k}"
+            [[ "$suff" == "$pref" ]] && echo "${tags[i]} ${tags[j]}" && ((++n))
+        done
+    done
 }
 
 # grph ">Rosalind_0498
@@ -320,6 +438,81 @@ grph() {
 # echo "Rosalind_0498 Rosalind_2391
 # Rosalind_0498 Rosalind_0442
 # Rosalind_2391 Rosalind_2323"
+
+
+
+iev() {
+    local AA_AA="$1" # 4/4
+    local AA_Aa="$2" # 4/4
+    local AA_aa="$3" # 4/4
+    local Aa_Aa="$4" # 3/4
+    local Aa_aa="$5" # 2/4
+    local aa_aa="$6" # 0/4
+
+    local n=2
+    local exp_x4=$(((AA_AA + AA_Aa + AA_aa) * 4 + Aa_Aa * 3 + Aa_aa * 2))
+    echo $((exp_x4 * n)) | awk '{print $1 / 4}'
+}
+
+# iev 1 0 0 1 0 1
+# echo 3.5
+
+
+
+lcs() {
+    declare -A arr
+    local z=0
+    local res
+
+    for ((i = 0; i < ${#1}; i++)); do
+        for ((j = i; j < ${#2}; j++)); do
+            if [[ "${1:i:1}" == "${2:j:1}" ]]; then
+                if ((i == 0 || j == 0)); then
+                    arr[$i,$j]=1
+                else
+                    local ii=$((i - 1))
+                    local jj=$((j - 1))
+                    arr[$i,$j]=$((arr[$ii,$jj] + 1))
+                fi
+
+                if ((z < ${arr[$i,$j]})); then
+                    z=${arr[$i,$j]}
+                    res="${1:$((i-z+1)):1}"
+                    # echo "$res i=$i j=$j"
+                elif ((z == ${arr[$i,$j]})); then
+                    res="$res""${1:$((i-z+1)):1}"
+                fi
+                echo "i=$i j=$j ${1:i:1} z=$z res=$res"
+            else
+                arr[$i,$j]=0
+            fi
+            # echo "${arr[@]}"
+            # echo "${!arr[@]}"
+        done
+    done
+    echo $z
+    echo "$res"
+}
+
+lcsm() {
+    local x="${1//$'\n'/ }"
+    declare -A arr
+    declare $(awk 'BEGIN{RS=">"} {print "arr["$1"]="$2}' <<< "${x#>}")
+
+    for x in "${!arr[@]}"; do
+        echo "$x: ${arr[$x]}"
+    done
+
+    lcs "${arr[Rosalind_1]}" "${arr[Rosalind_2]}"
+}
+
+# lcsm ">Rosalind_1
+# GATTACA
+# >Rosalind_2
+# TAGACCA
+# >Rosalind_3
+# ATACA"
+# echo AC
 
 
 
